@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Remix Spy Game Multiplayer",
+  "description": "A secure, real-time multiplayer social deduction game featuring private rooms, live chat, and a dedicated host dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

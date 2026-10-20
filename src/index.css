@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-page: #EEF2FF;
+    --text-page: #0F172A;
+  }
+
+  .dark {
+    --bg-page: #0C1021;
+    --text-page: #F8FAFC;
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-page);
+    overflow-x: hidden;
+    transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .font-game {
+    font-family: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Tactile Cartoon Game Buttons & Cards */
+.btn-game-coral {
+  background-color: #FF4757;
+  color: #FFFFFF;
+  border-bottom: 4px solid #D63031;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-game-coral:hover {
+  background-color: #FF6B81;
+}
+.btn-game-coral:active:not(:disabled) {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+}
+
+.btn-game-amber {
+  background-color: #FFA502;
+  color: #0F172A;
+  border-bottom: 4px solid #E67E22;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-game-amber:hover {
+  background-color: #FFB834;
+}
+.btn-game-amber:active:not(:disabled) {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+}
+
+.btn-game-cyan {
+  background-color: #00D2D3;
+  color: #0F172A;
+  border-bottom: 4px solid #01A3A4;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-game-cyan:hover {
+  background-color: #48DBFB;
+}
+.btn-game-cyan:active:not(:disabled) {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+}
+
+.btn-game-purple {
+  background-color: #8854D0;
+  color: #FFFFFF;
+  border-bottom: 4px solid #5758BB;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-game-purple:hover {
+  background-color: #9B59B6;
+}
+.btn-game-purple:active:not(:disabled) {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+}
+
+.btn-game-emerald {
+  background-color: #2ED573;
+  color: #FFFFFF;
+  border-bottom: 4px solid #26AF61;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-game-emerald:hover {
+  background-color: #7BED9F;
+  color: #0F172A;
+}
+.btn-game-emerald:active:not(:disabled) {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+}
+
+.btn-game-slate {
+  background-color: #E2E8F0;
+  color: #1E293B;
+  border-bottom: 4px solid #CBD5E1;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .btn-game-slate {
+  background-color: #1E293B;
+  color: #F1F5F9;
+  border-bottom: 4px solid #0F172A;
+}
+.btn-game-slate:hover {
+  background-color: #CBD5E1;
+}
+.dark .btn-game-slate:hover {
+  background-color: #334155;
+}
+.btn-game-slate:active:not(:disabled) {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+}
+
+/* Subtle Cartoon Animations */
+@keyframes popIn {
+  0% { transform: scale(0.92); opacity: 0; }
+  70% { transform: scale(1.03); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounceSubtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.94; transform: scale(1.01); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-pop-in {
+  animation: popIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 2s infinite ease-in-out;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s infinite ease-in-out;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #232B47;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3B456B;
+}

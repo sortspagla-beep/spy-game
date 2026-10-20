@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "profile": {
+      "title": "UserProfile",
+      "description": "User profile with role and authentication details",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user ID"
+        },
+        "username": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Display username"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["HOST", "PLAYER"],
+          "description": "System role"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "User full name"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Google email address"
+        },
+        "avatar": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Avatar preset ID or ImgBB hosted photo URL"
+        },
+        "isProfileCompleted": {
+          "type": "boolean",
+          "description": "Whether user profile setup has been finished"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp created"
+        }
+      },
+      "required": ["id", "username", "role", "createdAt"]
+    },
+    "chatMessage": {
+      "title": "ChatMessage",
+      "description": "Real-time chat transmission message",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message ID"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "ID of sender"
+        },
+        "senderUsername": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Username of sender"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Message body"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Unix timestamp"
+        }
+      },
+      "required": ["id", "senderId", "senderUsername", "content", "timestamp"]
+    },
+    "room": {
+      "title": "Room",
+      "description": "Multiplayer Spy Game match room",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{5}$",
+          "description": "5-character room code"
+        },
+        "hostId": {
+          "type": "string",
+          "description": "Host user ID"
+        },
+        "hostUsername": {
+          "type": "string",
+          "description": "Host username"
+        },
+        "isOpenJoining": {
+          "type": "boolean",
+          "description": "Whether joining is allowed"
+        },
+        "isClosed": {
+          "type": "boolean",
+          "description": "Whether room is archived"
+        },
+        "phase": {
+          "type": "string",
+          "description": "Current active game phase"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["code", "hostId", "hostUsername", "isOpenJoining", "isClosed", "phase", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "profile",
+      "description": "Public user profiles"
+    },
+    "/global_chat/{messageId}": {
+      "schema": "chatMessage",
+      "description": "Global operational frequency messages"
+    },
+    "/rooms/{roomCode}": {
+      "schema": "room",
+      "description": "Live game rooms"
+    }
+  }
+}

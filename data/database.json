@@ -1,0 +1,364 @@
+{
+  "users": [
+    {
+      "id": "admin-001",
+      "username": "Admin",
+      "role": "HOST",
+      "salt": "020cda0c8b40dcd34dd65f4d3ce8f6a9",
+      "hash": "17760c43113513cfc07d1ed24ef66fbc93e3bbcc1dd8e545aaba16a99812758f73040ded216a85b529743fef2a76e367b5eb9c25c32cc82c9a219532c5b8b658",
+      "createdAt": 1792490914175,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "host-nafiul-001",
+      "username": "Nafiul",
+      "role": "HOST",
+      "salt": "9b72d4767579ab6a6997d50fbfaf8f79",
+      "hash": "de0942e577ebba844b0d37b82106ec01e8e4d8832f9ba2c2b3b1364cc42adb074f80eef5fb53984bbf8c8cb8f9ec3fb9d105fe9e02d7a9e340d76893e708d216",
+      "createdAt": 1792185637965,
+      "email": "obyda.cmch@gmail.com",
+      "name": "Obyda",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "TpgXu3OzsFVAkLQaoljFawPnXXd2",
+      "username": "Nefox",
+      "name": "Nefox",
+      "email": "nefox477@gmail.com",
+      "role": "PLAYER",
+      "createdAt": 1792424947876,
+      "avatar": "avatar-bear",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "test_uid_host",
+      "username": "HostPlayer",
+      "name": "HostPlayer",
+      "email": "host_test@example.com",
+      "role": "PLAYER",
+      "createdAt": 1792425400980,
+      "avatar": "avatar-spy-classic",
+      "isProfileCompleted": false,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "test_uid_p2",
+      "username": "AgentTwo",
+      "name": "AgentTwo",
+      "email": "player2_test@example.com",
+      "role": "PLAYER",
+      "createdAt": 1792425400999,
+      "avatar": "avatar-spy-classic",
+      "isProfileCompleted": false,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfgk3qo",
+      "username": "alice_k3r6",
+      "name": "Alice Host",
+      "email": "player1_1792426666902@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426666992,
+      "avatar": "detective_fedora",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfgk3rk",
+      "username": "bob_k3rn",
+      "name": "Bob Player",
+      "email": "player2_1792426667018@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426667024,
+      "avatar": "ninja_mask",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfgk3s0",
+      "username": "CharlieOutsider",
+      "name": "Charlie Outsider",
+      "email": "player3_1792426667036@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426667040,
+      "avatar": "avatar-spy-classic",
+      "isProfileCompleted": false,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfglkpm",
+      "username": "alice_lkni",
+      "name": "Alice Host",
+      "email": "host_lkni@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426735642,
+      "avatar": "detective_fedora",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfglkq2",
+      "username": "bob_lkni",
+      "name": "Bob Contestant",
+      "email": "p2_lkni@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426735658,
+      "avatar": "detective_fedora",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfglkqk",
+      "username": "charlie_lkni",
+      "name": "Charlie Contestant",
+      "email": "p3_lkni@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426735676,
+      "avatar": "detective_fedora",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvfglkqq",
+      "username": "dave_lkni",
+      "name": "Dave Outsider",
+      "email": "p4_lkni@test.com",
+      "role": "PLAYER",
+      "createdAt": 1792426735682,
+      "avatar": "detective_fedora",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvghhqeb",
+      "username": "bob_hqe5",
+      "name": "Bob Contestant",
+      "email": "bob_hqe5_1792488702173@testparty.com",
+      "role": "PLAYER",
+      "createdAt": 1792488702180,
+      "avatar": "ninja_mask",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvghhqeo",
+      "username": "charlie_hqel",
+      "name": "Charlie Contestant",
+      "email": "charlie_hqel_1792488702189@testparty.com",
+      "role": "PLAYER",
+      "createdAt": 1792488702192,
+      "avatar": "ninja_mask",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvghi62e",
+      "username": "bob_i627",
+      "name": "Bob Contestant",
+      "email": "bob_i627_1792488722479@testparty.com",
+      "role": "PLAYER",
+      "createdAt": 1792488722486,
+      "avatar": "ninja_mask",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "g_mvghi62x",
+      "username": "charlie_i62u",
+      "name": "Charlie Contestant",
+      "email": "charlie_i62u_1792488722502@testparty.com",
+      "role": "PLAYER",
+      "createdAt": 1792488722505,
+      "avatar": "ninja_mask",
+      "isProfileCompleted": true,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "user-player1-mvgit58s",
+      "username": "Player1",
+      "role": "PLAYER",
+      "salt": "9bbf87905595f02212f693b6017a321f",
+      "hash": "884a4dee782b20cf2c4b35ae9956c77998001a280cf376e37d4fb1aa2888a848d00d5255d8ef38f617710f6d6e2bc9433f41c717a45b5b7c7f9d184239293b14",
+      "createdAt": 1792490914252,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 1
+    },
+    {
+      "id": "user-player2-mvgit5a8",
+      "username": "Player2",
+      "role": "PLAYER",
+      "salt": "1e079679aafce6cb8d9f57aee8281fa1",
+      "hash": "00e19ed1a1f49a8cfd7d78849409a1ff5f131fbba192676aacfd03485a7cd986c78b147a3b14f9aba1479ad1160f05c46ed7d69b4972fe57998c9214c6fcd714",
+      "createdAt": 1792490914304,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "user-player3-mvgit5bm",
+      "username": "Player3",
+      "role": "PLAYER",
+      "salt": "4e02ed7ceb05cd805c98e278b04e144a",
+      "hash": "48b4aa8b7eb85408f0e156a3e4d6a142973f3108f2ae928212d3e3ab0542a09105e40887c64de22d5e7f4ad5d96146938eb2e3e047a2349722ecdd0a8142b56d",
+      "createdAt": 1792490914354,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    },
+    {
+      "id": "user-player4-mvgit5cz",
+      "username": "Player4",
+      "role": "PLAYER",
+      "salt": "72e517a02b2d6d0e50f0fa6cac894b1a",
+      "hash": "4dbb03e70af0fe91f22be2bcf2c822360c834bbf47d9cf0acb8a949010d803af2a55eba639000e2d15ab64d1679c1ec644fd5b9202366c3693a8290edcbfca21",
+      "createdAt": 1792490914403,
+      "stats": {
+        "gamesPlayed": 0,
+        "gamesWon": 0,
+        "highestStreak": 0,
+        "currentStreak": 0
+      },
+      "likesCount": 0
+    }
+  ],
+  "globalChat": [
+    {
+      "id": "welcome-msg-1",
+      "roomId": "global",
+      "senderId": "host-nafiul-001",
+      "senderUsername": "Nafiul",
+      "content": "Welcome to SPY GAME! Join a room or wait for a match to start.",
+      "timestamp": 1792182038150
+    },
+    {
+      "id": "msg-1792424961760-60fbd8",
+      "roomId": "global",
+      "senderId": "TpgXu3OzsFVAkLQaoljFawPnXXd2",
+      "senderUsername": "Nefox",
+      "senderAvatar": "avatar-bear",
+      "content": "Hlw",
+      "timestamp": 1792424961760
+    }
+  ],
+  "roomHistory": [],
+  "likes": [
+    {
+      "fromUserId": "user-player2-mvgit5a8",
+      "toUserId": "user-player1-mvgit58s",
+      "timestamp": 1792491642249
+    }
+  ],
+  "friendRequests": [],
+  "friendships": []
+}
