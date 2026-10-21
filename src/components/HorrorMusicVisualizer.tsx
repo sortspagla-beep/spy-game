@@ -29,7 +29,7 @@ export function HorrorMusicVisualizer({ className = '', barCount = 16 }: HorrorM
         const barWidth = Math.max(2, (width - (barCount - 1) * 2) / barCount);
         for (let i = 0; i < barCount; i++) {
           const x = i * (barWidth + 2);
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; // Faint red idle
+          ctx.fillStyle = 'rgba(6, 182, 212, 0.2)'; // Faint cyan idle
           ctx.fillRect(x, height - 3, barWidth, 3);
         }
         animationFrameRef.current = requestAnimationFrame(render);
@@ -51,11 +51,11 @@ export function HorrorMusicVisualizer({ className = '', barCount = 16 }: HorrorM
         const x = i * (barWidth + 2);
         const y = height - barHeight;
 
-        // Gradient from crimson to neon blood red
+        // Gradient from deep indigo to luminous neon cyan
         const gradient = ctx.createLinearGradient(0, height, 0, y);
-        gradient.addColorStop(0, 'rgba(185, 28, 28, 0.85)'); // dark red
-        gradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.95)'); // bright red
-        gradient.addColorStop(1, 'rgba(254, 202, 202, 1)'); // eerie white-pink peak
+        gradient.addColorStop(0, 'rgba(79, 70, 229, 0.85)'); // indigo
+        gradient.addColorStop(0.5, 'rgba(6, 182, 212, 0.95)'); // cyan
+        gradient.addColorStop(1, 'rgba(165, 243, 252, 1)'); // bright cyan peak
 
         ctx.fillStyle = gradient;
         ctx.fillRect(x, y, barWidth, barHeight);
@@ -79,7 +79,7 @@ export function HorrorMusicVisualizer({ className = '', barCount = 16 }: HorrorM
       width={barCount * 4 + 10}
       height={22}
       className={`rounded pointer-events-none ${className}`}
-      title={isPlaying ? 'Horror Theme Sound Wave' : 'Horror Music Inactive'}
+      title={isPlaying ? 'Mystery Theme Sound Wave' : 'Mystery Music Inactive'}
     />
   );
 }

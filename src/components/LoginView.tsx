@@ -4,16 +4,14 @@ import { auth, googleProvider } from '../firebase.js';
 import { useGame } from '../context/GameContext.js';
 import { HorrorAudioButton } from './HorrorAudioButton.js';
 import { ThemeToggle } from './ThemeToggle.js';
-import { Sparkles, Gamepad2, AlertCircle, Loader2, Copy, Check, ExternalLink, Globe } from 'lucide-react';
+import { Sparkles, Gamepad2, AlertCircle, Loader2 } from 'lucide-react';
 
 export function LoginView() {
   const { loginWithGoogle } = useGame();
   const [error, setError] = useState<string | null>(null);
-  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
-  const [copiedDomain, setCopiedDomain] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  // Check for redirect result on mount (for mobile browsers or redirect fallback)
+  // Check for redirect result on mount if redirect auth occurred
   React.useEffect(() => {
     import('firebase/auth').then(({ getRedirectResult }) => {
       getRedirectResult(auth)
@@ -27,12 +25,12 @@ export function LoginView() {
               photoURL: result.user.photoURL,
             });
             if (!res.success) {
-              setError('Unable to complete profile setup after sign-in.');
+              setError('Unable to complete sign-in. Please try again.');
             }
           }
         })
-        .catch((err) => {
-          handleAuthError(err);
+        .catch(() => {
+          setError('Unable to sign in. Please try again.');
         })
         .finally(() => {
           setIsSigningIn(false);
@@ -40,30 +38,8 @@ export function LoginView() {
     });
   }, [loginWithGoogle]);
 
-  const handleAuthError = (err: any) => {
-    const code = err?.code || '';
-    if (code === 'auth/unauthorized-domain') {
-      const currentDomain = window.location.hostname;
-      setUnauthorizedDomain(currentDomain);
-      setError(
-        `This domain (${currentDomain}) is not authorized in Firebase. Add it to Firebase Console > Authentication > Settings > Authorized domains.`
-      );
-    } else if (code === 'auth/popup-closed-by-user') {
-      setError('Sign-in popup was closed before completing. Please try again.');
-    } else if (code === 'auth/popup-blocked') {
-      setError('Sign-in popup was blocked by your browser. Please allow popups or try redirect sign-in.');
-    } else if (code === 'auth/operation-not-allowed') {
-      setError('Google Sign-In is not enabled in Firebase Console (Authentication > Sign-in provider).');
-    } else if (code === 'auth/network-request-failed') {
-      setError('Network connection error. Please check your internet and try again.');
-    } else {
-      setError(err?.message || 'Unable to sign in with Google. Please try again.');
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     setError(null);
-    setUnauthorizedDomain(null);
     setIsSigningIn(true);
 
     try {
@@ -84,36 +60,16 @@ export function LoginView() {
       if (!res.success) {
         setError('Unable to complete sign-in. Please try again.');
       }
-    } catch (err: any) {
-      handleAuthError(err);
+    } catch {
+      setError('Unable to sign in with Google. Please try again.');
     } finally {
       setIsSigningIn(false);
     }
   };
 
-  const handleRedirectSignIn = async () => {
-    setError(null);
-    setIsSigningIn(true);
-    try {
-      const { signInWithRedirect } = await import('firebase/auth');
-      await signInWithRedirect(auth, googleProvider);
-    } catch (err: any) {
-      handleAuthError(err);
-      setIsSigningIn(false);
-    }
-  };
-
-  const handleCopyDomain = () => {
-    if (unauthorizedDomain) {
-      navigator.clipboard.writeText(unauthorizedDomain);
-      setCopiedDomain(true);
-      setTimeout(() => setCopiedDomain(false), 2500);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#EEF2FF] dark:bg-[#0C1021] text-slate-900 dark:text-slate-100 flex flex-col justify-center items-center px-4 py-8 sm:py-12 relative overflow-hidden transition-colors duration-300">
-      {/* Top Right Controls (Horror Audio & Theme) */}
+      {/* Top Right Controls (Audio & Theme) */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <HorrorAudioButton />
         <ThemeToggle />
@@ -150,40 +106,9 @@ export function LoginView() {
         {/* Tactile Game Login Card */}
         <div className="bg-white dark:bg-[#151B33] border-2 border-indigo-100 dark:border-indigo-900/60 rounded-3xl p-6 sm:p-7 shadow-[0_12px_24px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_32px_rgba(0,0,0,0.4)] transition-colors duration-300 space-y-5">
           {error && (
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-200 dark:border-rose-800 rounded-2xl text-rose-700 dark:text-rose-200 text-xs leading-relaxed animate-shake">
-                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-bold">{error}</p>
-                </div>
-              </div>
-
-              {unauthorizedDomain && (
-                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700 rounded-2xl text-amber-900 dark:text-amber-200 text-xs space-y-2.5">
-                  <div className="flex items-center gap-1.5 font-bold font-game uppercase tracking-wide text-amber-800 dark:text-amber-300">
-                    <Globe className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <span>How to fix Authorized Domains:</span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 p-2 bg-white/80 dark:bg-[#1E2540] border border-amber-300/60 dark:border-amber-700/60 rounded-xl font-mono text-[11px] break-all">
-                    <span className="font-semibold text-slate-800 dark:text-slate-100">{unauthorizedDomain}</span>
-                    <button
-                      type="button"
-                      onClick={handleCopyDomain}
-                      className="shrink-0 flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white font-game font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
-                    >
-                      {copiedDomain ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                      <span>{copiedDomain ? 'COPIED!' : 'COPY'}</span>
-                    </button>
-                  </div>
-
-                  <ol className="list-decimal list-inside space-y-1 text-[11px] leading-snug text-slate-700 dark:text-slate-300">
-                    <li>Open <strong>Firebase Console</strong> &gt; your project</li>
-                    <li>Go to <strong>Authentication</strong> &gt; <strong>Settings</strong> &gt; <strong>Authorized domains</strong></li>
-                    <li>Click <strong>Add domain</strong>, paste the domain above, and click <strong>Add</strong></li>
-                  </ol>
-                </div>
-              )}
+            <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-200 dark:border-rose-800 rounded-2xl text-rose-700 dark:text-rose-200 text-xs leading-relaxed animate-shake">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
           )}
 
@@ -233,18 +158,6 @@ export function LoginView() {
               </>
             )}
           </button>
-
-          {/* Subtle alternative for mobile/browsers blocking popups */}
-          <div className="pt-1 text-center">
-            <button
-              type="button"
-              onClick={handleRedirectSignIn}
-              disabled={isSigningIn}
-              className="text-xs text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-300 transition-colors underline cursor-pointer disabled:opacity-50"
-            >
-              Popups blocked? Click to sign in with page redirect
-            </button>
-          </div>
         </div>
 
         {/* Footer */}

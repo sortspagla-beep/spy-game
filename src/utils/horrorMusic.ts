@@ -1,5 +1,7 @@
-// Web Audio API Instrumental Horror Theme Music Engine (Hermetic, Zero-Vocal, Procedural)
-// Mastered for cinematic loudness, deep bass rumble, tension heartbeats, and eerie horror bells
+// Web Audio API Procedural Dark Sci-Fi Ambient Music Engine
+// Prompt: "Dark sci-fi ambient background music, mysterious and tense atmosphere,
+// subtle low-frequency drone, faint spaceship engine hum, eerie minimalistic synth arpeggios,
+// suspicious and paranoid vibe, looping instrumental, 80 BPM, clean production for web background music."
 
 export type HorrorMood = 'dread' | 'suspense' | 'terror';
 
@@ -10,44 +12,54 @@ export interface HorrorMusicSettings {
   autoGameAdapt: boolean;
 }
 
-class HorrorMusicEngine {
+// 80 BPM Timing
+// 1 beat = 750ms, 8th note = 375ms, 16th note = 187.5ms
+const BPM = 80;
+const BEAT_MS = (60 / BPM) * 1000; // 750ms
+const SIXTEENTH_MS = BEAT_MS / 4;  // 187.5ms
+
+class DarkSciFiAmbientEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private analyserNode: AnalyserNode | null = null;
+  private delayNode: DelayNode | null = null;
+  private delayFeedback: GainNode | null = null;
 
   private isRunning: boolean = false;
-  private currentVolume: number = 0.8; // High default volume for clear loudness
+  private currentVolume: number = 0.75;
   private isMuted: boolean = false;
   private currentMood: HorrorMood = 'dread';
 
   // Active audio node references for cleanup
-  private droneNodes: {
+  private engineHumNodes: {
+    oscSub: OscillatorNode;
+    oscBeat1: OscillatorNode;
+    oscBeat2: OscillatorNode;
+    noiseSource: AudioBufferSourceNode;
+    noiseFilter: BiquadFilterNode;
+    noiseGain: GainNode;
+    masterDroneGain: GainNode;
+  } | null = null;
+
+  private atmosphericDroneNodes: {
     osc1: OscillatorNode;
     osc2: OscillatorNode;
     osc3: OscillatorNode;
     filter: BiquadFilterNode;
+    filterLfo: OscillatorNode;
+    filterLfoGain: GainNode;
     gain: GainNode;
-    lfo: OscillatorNode;
-    lfoGain: GainNode;
   } | null = null;
 
-  private windNodes: {
-    source: AudioBufferSourceNode;
-    filter: BiquadFilterNode;
-    gain: GainNode;
-    lfo: OscillatorNode;
-    lfoGain: GainNode;
-  } | null = null;
+  // Sequencer timers for 80 BPM loops
+  private arpeggioTimer: any = null;
+  private pulseTimer: any = null;
+  private radarTimer: any = null;
 
-  // Timers for musical loops
-  private heartbeatTimer: any = null;
-  private melodyTimer: any = null;
-  private stringSwellTimer: any = null;
-  private stingerTimer: any = null;
-
-  // Melody state
-  private melodyIndex: number = 0;
+  // Step indices
+  private arpeggioStep: number = 0;
+  private pulseStep: number = 0;
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -101,21 +113,37 @@ class HorrorMusicEngine {
 
     this.isRunning = true;
 
-    // Set up master routing: Source -> MasterGain -> Compressor -> Analyser -> Destination
+    // Set up master audio graph:
+    // Audio Sources -> MasterGain -> Compressor -> Analyser -> Destination
     if (!this.masterGain) {
       this.masterGain = ctx.createGain();
 
-      // Professional audio compressor / limiter for maximum loudness without clipping
+      // Studio-grade clean limiter & compressor
       this.compressor = ctx.createDynamicsCompressor();
-      this.compressor.threshold.setValueAtTime(-14, ctx.currentTime);
+      this.compressor.threshold.setValueAtTime(-18, ctx.currentTime);
       this.compressor.knee.setValueAtTime(8, ctx.currentTime);
-      this.compressor.ratio.setValueAtTime(4, ctx.currentTime);
-      this.compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+      this.compressor.ratio.setValueAtTime(3.5, ctx.currentTime);
+      this.compressor.attack.setValueAtTime(0.01, ctx.currentTime);
       this.compressor.release.setValueAtTime(0.25, ctx.currentTime);
 
       this.analyserNode = ctx.createAnalyser();
       this.analyserNode.fftSize = 64;
-      this.analyserNode.smoothingTimeConstant = 0.8;
+      this.analyserNode.smoothingTimeConstant = 0.85;
+
+      // Space echo delay bus for sci-fi atmosphere (dotted 8th note delay @ 80 BPM = 562.5ms)
+      this.delayNode = ctx.createDelay();
+      this.delayNode.delayTime.setValueAtTime((BEAT_MS * 0.75) / 1000, ctx.currentTime);
+      this.delayFeedback = ctx.createGain();
+      this.delayFeedback.gain.setValueAtTime(0.28, ctx.currentTime);
+
+      const delayDampFilter = ctx.createBiquadFilter();
+      delayDampFilter.type = 'lowpass';
+      delayDampFilter.frequency.setValueAtTime(1400, ctx.currentTime);
+
+      this.delayNode.connect(delayDampFilter);
+      delayDampFilter.connect(this.delayFeedback);
+      this.delayFeedback.connect(this.delayNode);
+      this.delayNode.connect(this.masterGain);
 
       this.masterGain.connect(this.compressor);
       this.compressor.connect(this.analyserNode);
@@ -124,16 +152,15 @@ class HorrorMusicEngine {
 
     const effectiveGain = this.isMuted ? 0 : this.currentVolume;
     const now = ctx.currentTime;
-    this.masterGain.gain.setValueAtTime(0.01, now);
+    this.masterGain.gain.setValueAtTime(0.001, now);
     this.masterGain.gain.linearRampToValueAtTime(effectiveGain, now + 0.8);
 
-    // Initialize all procedural layers
-    this.startSubDrone();
-    this.startGhostWindTexture();
-    this.startHeartbeatLoop();
-    this.startHorrorMelodyLoop();
-    this.startStringSwells();
-    this.startRandomStingers();
+    // Initialize all procedural dark sci-fi ambient layers
+    this.startSpaceshipEngineHum();
+    this.startSubtleLowFrequencyDrone();
+    this.startEerieMinimalistSynthArpeggios();
+    this.startSuspiciousPulseBass();
+    this.startParanoidRadarPings();
   }
 
   public stop() {
@@ -153,33 +180,34 @@ class HorrorMusicEngine {
   }
 
   private cleanupNodes() {
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-    if (this.melodyTimer) clearTimeout(this.melodyTimer);
-    if (this.stringSwellTimer) clearTimeout(this.stringSwellTimer);
-    if (this.stingerTimer) clearTimeout(this.stingerTimer);
-    this.heartbeatTimer = null;
-    this.melodyTimer = null;
-    this.stringSwellTimer = null;
-    this.stingerTimer = null;
+    if (this.arpeggioTimer) clearInterval(this.arpeggioTimer);
+    if (this.pulseTimer) clearInterval(this.pulseTimer);
+    if (this.radarTimer) clearTimeout(this.radarTimer);
 
-    if (this.droneNodes) {
+    this.arpeggioTimer = null;
+    this.pulseTimer = null;
+    this.radarTimer = null;
+
+    if (this.engineHumNodes) {
       try {
-        this.droneNodes.osc1.stop();
-        this.droneNodes.osc2.stop();
-        this.droneNodes.osc3.stop();
-        this.droneNodes.lfo.stop();
-        this.droneNodes.gain.disconnect();
+        this.engineHumNodes.oscSub.stop();
+        this.engineHumNodes.oscBeat1.stop();
+        this.engineHumNodes.oscBeat2.stop();
+        this.engineHumNodes.noiseSource.stop();
+        this.engineHumNodes.masterDroneGain.disconnect();
       } catch {}
-      this.droneNodes = null;
+      this.engineHumNodes = null;
     }
 
-    if (this.windNodes) {
+    if (this.atmosphericDroneNodes) {
       try {
-        this.windNodes.source.stop();
-        this.windNodes.lfo.stop();
-        this.windNodes.gain.disconnect();
+        this.atmosphericDroneNodes.osc1.stop();
+        this.atmosphericDroneNodes.osc2.stop();
+        this.atmosphericDroneNodes.osc3.stop();
+        this.atmosphericDroneNodes.filterLfo.stop();
+        this.atmosphericDroneNodes.gain.disconnect();
       } catch {}
-      this.windNodes = null;
+      this.atmosphericDroneNodes = null;
     }
   }
 
@@ -214,51 +242,138 @@ class HorrorMusicEngine {
   }
 
   private updateMoodParameters() {
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-    if (this.melodyTimer) clearTimeout(this.melodyTimer);
-    this.startHeartbeatLoop();
-    this.startHorrorMelodyLoop();
+    if (this.arpeggioTimer) clearInterval(this.arpeggioTimer);
+    if (this.pulseTimer) clearInterval(this.pulseTimer);
+    this.startEerieMinimalistSynthArpeggios();
+    this.startSuspiciousPulseBass();
   }
 
-  // --- LAYER 1: HEAVY OMINOUS SUB-BASS DRONE (LOUDER & DEEPER) ---
-  private startSubDrone() {
+  // --- LAYER 1: FAINT SPACESHIP ENGINE HUM (SUBTLE, DEEP, LOW-FREQUENCY) ---
+  private startSpaceshipEngineHum() {
     const ctx = this.getContext();
     if (!ctx || !this.masterGain) return;
 
     try {
+      const masterDroneGain = ctx.createGain();
+      masterDroneGain.gain.setValueAtTime(0.38, ctx.currentTime);
+
+      // Deep sub-octave C1 (32.7 Hz) spaceship cabin resonance
+      const oscSub = ctx.createOscillator();
+      oscSub.type = 'sine';
+      oscSub.frequency.setValueAtTime(32.7, ctx.currentTime);
+
+      const subGain = ctx.createGain();
+      subGain.gain.setValueAtTime(0.42, ctx.currentTime);
+      oscSub.connect(subGain);
+      subGain.connect(masterDroneGain);
+
+      // Binaural engine reactor beating: 42.0 Hz & 43.1 Hz (1.1 Hz slow throb)
+      const oscBeat1 = ctx.createOscillator();
+      const oscBeat2 = ctx.createOscillator();
+      oscBeat1.type = 'triangle';
+      oscBeat1.frequency.setValueAtTime(42.0, ctx.currentTime);
+      oscBeat2.type = 'sine';
+      oscBeat2.frequency.setValueAtTime(43.1, ctx.currentTime);
+
+      const beatFilter = ctx.createBiquadFilter();
+      beatFilter.type = 'lowpass';
+      beatFilter.frequency.setValueAtTime(75, ctx.currentTime);
+      beatFilter.Q.setValueAtTime(3.0, ctx.currentTime);
+
+      const beatGain = ctx.createGain();
+      beatGain.gain.setValueAtTime(0.35, ctx.currentTime);
+
+      oscBeat1.connect(beatFilter);
+      oscBeat2.connect(beatFilter);
+      beatFilter.connect(beatGain);
+      beatGain.connect(masterDroneGain);
+
+      // Faint ventilation & reactor cooling air hiss (filtered low rumble)
+      const bufferSize = ctx.sampleRate * 3;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + 0.02 * white) / 1.02; // Brown/pink noise
+        lastOut = data[i];
+      }
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = true;
+
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.setValueAtTime(110, ctx.currentTime);
+      noiseFilter.Q.setValueAtTime(4.0, ctx.currentTime);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.12, ctx.currentTime);
+
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(masterDroneGain);
+
+      masterDroneGain.connect(this.masterGain);
+
+      oscSub.start();
+      oscBeat1.start();
+      oscBeat2.start();
+      noiseSource.start();
+
+      this.engineHumNodes = {
+        oscSub,
+        oscBeat1,
+        oscBeat2,
+        noiseSource,
+        noiseFilter,
+        noiseGain,
+        masterDroneGain,
+      };
+    } catch (e) {
+      console.warn('Spaceship engine hum initialization warning', e);
+    }
+  }
+
+  // --- LAYER 2: SUBTLE LOW-FREQUENCY DRONE (DARK SCI-FI ATMOSPHERIC BED) ---
+  private startSubtleLowFrequencyDrone() {
+    const ctx = this.getContext();
+    if (!ctx || !this.masterGain) return;
+
+    try {
+      // Dark Sci-Fi harmonic triad: C2 (65.4 Hz), G2 (98.0 Hz), and Bb2 (116.5 Hz - ominous minor 7th)
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
       const osc3 = ctx.createOscillator();
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
 
-      const lfo = ctx.createOscillator();
-      const lfoGain = ctx.createGain();
+      const filterLfo = ctx.createOscillator();
+      const filterLfoGain = ctx.createGain();
 
-      // Deep pitch: D1 (36.7 Hz), detuned D1 (37.4 Hz), and low octave D2 (73.4 Hz)
       osc1.type = 'sawtooth';
-      osc1.frequency.setValueAtTime(36.7, ctx.currentTime);
+      osc1.frequency.setValueAtTime(65.41, ctx.currentTime); // C2
 
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(37.4, ctx.currentTime);
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(97.99, ctx.currentTime); // G2
 
-      osc3.type = 'triangle';
-      osc3.frequency.setValueAtTime(73.4, ctx.currentTime);
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(116.54, ctx.currentTime); // Bb2 (tense sci-fi tone)
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(140, ctx.currentTime);
-      filter.Q.setValueAtTime(3.5, ctx.currentTime);
+      filter.frequency.setValueAtTime(180, ctx.currentTime);
+      filter.Q.setValueAtTime(2.5, ctx.currentTime);
 
-      // Slow dread filter breath
-      lfo.type = 'sine';
-      lfo.frequency.setValueAtTime(0.1, ctx.currentTime);
-      lfoGain.gain.setValueAtTime(60, ctx.currentTime);
+      // Very slow 0.06 Hz mysterious atmospheric filter breath
+      filterLfo.type = 'sine';
+      filterLfo.frequency.setValueAtTime(0.06, ctx.currentTime);
+      filterLfoGain.gain.setValueAtTime(70, ctx.currentTime);
 
-      lfo.connect(lfoGain);
-      lfoGain.connect(filter.frequency);
+      filterLfo.connect(filterLfoGain);
+      filterLfoGain.connect(filter.frequency);
 
-      // Louder base gain: 0.55 (was 0.22)
-      gain.gain.setValueAtTime(0.55, ctx.currentTime);
+      gain.gain.setValueAtTime(0.24, ctx.currentTime);
 
       osc1.connect(filter);
       osc2.connect(filter);
@@ -269,285 +384,227 @@ class HorrorMusicEngine {
       osc1.start();
       osc2.start();
       osc3.start();
-      lfo.start();
+      filterLfo.start();
 
-      this.droneNodes = { osc1, osc2, osc3, filter, gain, lfo, lfoGain };
+      this.atmosphericDroneNodes = {
+        osc1,
+        osc2,
+        osc3,
+        filter,
+        filterLfo,
+        filterLfoGain,
+        gain,
+      };
     } catch (e) {
-      console.warn('Sub drone initialization warning', e);
+      console.warn('Atmospheric drone initialization warning', e);
     }
   }
 
-  // --- LAYER 2: GHOST WIND & RESONANT TEXTURE ---
-  private startGhostWindTexture() {
+  // --- LAYER 3: EERIE MINIMALISTIC SYNTH ARPEGGIOS (80 BPM, SUSPICIOUS & PARANOID VIBE) ---
+  private startEerieMinimalistSynthArpeggios() {
+    // 80 BPM minimal sci-fi sequence in C minor / Phrygian
+    // Minimalist hypnotic notes: C4, Eb4, G4, Ab4 (Paranoid minor 6th), D4, F#4 (Alien tritone tension)
+    // 16-step grid (16 * 187.5ms = 3000ms per 4-beat bar)
+    const arpeggioNotes = [
+      { note: 261.63, vel: 0.28 }, // 1: C4
+      { note: 0,      vel: 0.00 }, // &
+      { note: 311.13, vel: 0.22 }, // 2: Eb4
+      { note: 0,      vel: 0.00 }, // &
+      { note: 392.00, vel: 0.26 }, // 3: G4
+      { note: 415.30, vel: 0.32 }, // & Ab4 (Suspicious & paranoid high tension note)
+      { note: 392.00, vel: 0.20 }, // 4: G4
+      { note: 0,      vel: 0.00 }, // &
+      { note: 293.66, vel: 0.24 }, // 1: D4 (Suspenseful second)
+      { note: 0,      vel: 0.00 }, // &
+      { note: 311.13, vel: 0.20 }, // 2: Eb4
+      { note: 369.99, vel: 0.30 }, // & F#4 (Eerie alien tritone)
+      { note: 261.63, vel: 0.25 }, // 3: C4
+      { note: 0,      vel: 0.00 }, // &
+      { note: 246.94, vel: 0.22 }, // 4: B3 (Paranoid leading tone)
+      { note: 0,      vel: 0.00 }, // &
+    ];
+
+    const playArpStep = () => {
+      if (!this.isRunning) return;
+      const step = this.arpeggioStep % arpeggioNotes.length;
+      this.arpeggioStep++;
+
+      const item = arpeggioNotes[step];
+      if (item.note > 0) {
+        // In dread (lobby/hints) mode, play every second active note for eerie minimalism
+        const shouldPlay =
+          this.currentMood !== 'dread' ||
+          (step % 4 === 0 || step === 5 || step === 11);
+
+        if (shouldPlay) {
+          const velocityFactor =
+            this.currentMood === 'terror' ? 1.25 : this.currentMood === 'suspense' ? 1.1 : 0.9;
+          this.synthesizeMinimalistSynthPluck(item.note, item.vel * velocityFactor);
+        }
+      }
+    };
+
+    playArpStep();
+    // Quantized precisely at 80 BPM 16th notes (187.5ms)
+    this.arpeggioTimer = setInterval(playArpStep, SIXTEENTH_MS);
+  }
+
+  private synthesizeMinimalistSynthPluck(freq: number, velocity: number) {
     const ctx = this.getContext();
     if (!ctx || !this.masterGain) return;
 
     try {
-      const bufferSize = ctx.sampleRate * 4;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      let b0 = 0, b1 = 0, b2 = 0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.96900 * b2 + white * 0.1538520;
-        output[i] = (b0 + b1 + b2) * 0.2;
-      }
-
-      const whiteNoise = ctx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
+      const now = ctx.currentTime;
+      // Dual oscillator analog synth architecture: Square + Triangle with gentle filter envelope
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
       const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(520, ctx.currentTime);
-      filter.Q.setValueAtTime(5.5, ctx.currentTime);
-
-      const lfo = ctx.createOscillator();
-      const lfoGain = ctx.createGain();
-      lfo.type = 'sine';
-      lfo.frequency.setValueAtTime(0.15, ctx.currentTime);
-      lfoGain.gain.setValueAtTime(380, ctx.currentTime);
-
-      lfo.connect(lfoGain);
-      lfoGain.connect(filter.frequency);
-
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.22, ctx.currentTime); // Louder (was 0.08)
 
-      whiteNoise.connect(filter);
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(freq, now);
+
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(freq * 1.002, now); // Micro-detune for analog warmth
+
+      // 24dB low-pass ladder filter envelope
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1200, now);
+      filter.frequency.exponentialRampToValueAtTime(320, now + 0.16);
+      filter.Q.setValueAtTime(4.2, now);
+
+      // Clean, plucky minimal amplitude envelope
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(velocity, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
       filter.connect(gain);
       gain.connect(this.masterGain);
 
-      whiteNoise.start();
-      lfo.start();
+      // Feed into space delay bus for expansive sci-fi space atmosphere
+      if (this.delayNode) {
+        const sendGain = ctx.createGain();
+        sendGain.gain.setValueAtTime(0.35, now);
+        gain.connect(sendGain);
+        sendGain.connect(this.delayNode);
+      }
 
-      this.windNodes = { source: whiteNoise, filter, gain, lfo, lfoGain };
-    } catch (e) {
-      console.warn('Ghost wind initialization warning', e);
-    }
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.35);
+      osc2.stop(now + 0.35);
+    } catch {}
   }
 
-  // --- LAYER 3: PROMINENT HEARTBEAT PULSE (LOUDER & THUMPING) ---
-  private startHeartbeatLoop() {
-    const getInterval = () => {
-      switch (this.currentMood) {
-        case 'terror': return 580;   // ~103 BPM fast terror
-        case 'suspense': return 850; // ~70 BPM tense interrogation
-        case 'dread':
-        default: return 1200;        // ~50 BPM sinister dread
-      }
-    };
-
+  // --- LAYER 4: SUSPICIOUS PULSE BASS (TENSE, STEADY 80 BPM UNDERPULSE) ---
+  private startSuspiciousPulseBass() {
+    // 8th-note subtle rhythmic anchor (every 375ms at 80 BPM)
     const playPulse = () => {
       if (!this.isRunning) return;
-      const ctx = this.getContext();
-      if (!ctx || !this.masterGain) return;
+      this.pulseStep++;
 
-      const now = ctx.currentTime;
-      const isTerror = this.currentMood === 'terror';
+      // Pulse notes in C minor: C2 (65.41Hz), with occasional Eb2 (77.78Hz) and G1 (48.99Hz)
+      const isDownbeat = this.pulseStep % 8 === 0;
+      const isOffbeatTension = this.pulseStep % 8 === 6;
 
-      // Loud, impactful lub-dub (0.65 / 0.50 volume)
-      this.synthesizeHeartbeatThud(ctx, now, isTerror ? 0.75 : 0.60, 68, 30);
-      const secondDelay = isTerror ? 0.15 : 0.20;
-      this.synthesizeHeartbeatThud(ctx, now + secondDelay, isTerror ? 0.60 : 0.48, 60, 26);
+      const freq = isOffbeatTension ? 77.78 : isDownbeat ? 48.99 : 65.41;
+      const isMutedVibe = this.currentMood === 'dread' && this.pulseStep % 2 !== 0;
+
+      if (!isMutedVibe) {
+        this.synthesizePulseSub(freq, isDownbeat ? 0.36 : 0.24);
+      }
     };
 
     playPulse();
-    this.heartbeatTimer = setInterval(playPulse, getInterval());
+    this.pulseTimer = setInterval(playPulse, BEAT_MS / 2); // 375ms (8th note)
   }
 
-  private synthesizeHeartbeatThud(ctx: AudioContext, time: number, volume: number, startFreq: number, endFreq: number) {
+  private synthesizePulseSub(freq: number, vol: number) {
+    const ctx = this.getContext();
+    if (!ctx || !this.masterGain) return;
+
     try {
+      const now = ctx.currentTime;
       const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
 
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(startFreq, time);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, time + 0.16);
+      osc.frequency.setValueAtTime(freq, now);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(140, time);
+      filter.frequency.setValueAtTime(140, now);
+      filter.frequency.exponentialRampToValueAtTime(65, now + 0.22);
+      filter.Q.setValueAtTime(2.0, now);
 
-      gain.gain.setValueAtTime(0.001, time);
-      gain.gain.linearRampToValueAtTime(volume, time + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
 
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(this.masterGain!);
+      gain.connect(this.masterGain);
 
-      osc.start(time);
-      osc.stop(time + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.30);
     } catch {}
   }
 
-  // --- LAYER 4: EERIE HORROR BELLS / CELESTA (LOUD, CRISP & CHILLING) ---
-  private startHorrorMelodyLoop() {
-    // Haunting horror theme motif: D4 -> Ab4 (Tritone) -> F4 -> A4 -> C#5 (Dissonance) -> Bb4 -> G#4 -> D4
-    const horrorMelody = [
-      { note: 293.66, dur: 0.75 }, // D4
-      { note: 415.30, dur: 0.85 }, // G#4 (Tritone)
-      { note: 349.23, dur: 0.75 }, // F4
-      { note: 440.00, dur: 0.85 }, // A4
-      { note: 554.37, dur: 1.05 }, // C#5 (Chilling dissonance)
-      { note: 466.16, dur: 0.70 }, // Bb4
-      { note: 415.30, dur: 0.80 }, // G#4
-      { note: 293.66, dur: 1.30 }, // D4
-      { note: 0, dur: 0.90 },      // Brief pause
-      { note: 277.18, dur: 0.80 }, // C#4
-      { note: 329.63, dur: 0.75 }, // E4
-      { note: 415.30, dur: 1.10 }, // G#4
-      { note: 0, dur: 1.10 },      // Tension gap
-    ];
-
-    const playNextNote = () => {
+  // --- LAYER 5: PARANOID RADAR PINGS (EERIE SCI-FI SENSOR SWEEPS) ---
+  private startParanoidRadarPings() {
+    const schedulePing = () => {
       if (!this.isRunning) return;
-      const item = horrorMelody[this.melodyIndex];
-      this.melodyIndex = (this.melodyIndex + 1) % horrorMelody.length;
+      this.synthesizeRadarPing();
 
-      if (item.note > 0) {
-        this.synthesizeHorrorBell(item.note);
-      }
-
-      const speedMultiplier = this.currentMood === 'terror' ? 0.72 : this.currentMood === 'suspense' ? 0.88 : 1.05;
-      const nextDelay = (item.dur * 1000) * speedMultiplier;
-      this.melodyTimer = setTimeout(playNextNote, nextDelay);
+      // Scheduled every 6 to 12 seconds
+      const nextDelay = 7000 + Math.random() * 5000;
+      this.radarTimer = setTimeout(schedulePing, nextDelay);
     };
 
-    playNextNote();
+    this.radarTimer = setTimeout(schedulePing, 4000);
   }
 
-  private synthesizeHorrorBell(freq: number) {
+  private synthesizeRadarPing() {
     const ctx = this.getContext();
     if (!ctx || !this.masterGain) return;
 
     try {
       const now = ctx.currentTime;
-      // High-presence metallic chime partials (LOUD and clear)
-      const partials = [
-        { mult: 1.0, gain: 0.38, decay: 1.6 },
-        { mult: 2.756, gain: 0.20, decay: 1.0 },
-        { mult: 4.07, gain: 0.14, decay: 0.7 },
-      ];
-
-      partials.forEach((p) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq * p.mult, now);
-        osc.frequency.linearRampToValueAtTime(freq * p.mult * 0.995, now + p.decay);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(p.gain, now + 0.012);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + p.decay);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain!);
-
-        osc.start(now);
-        osc.stop(now + p.decay + 0.08);
-      });
-    } catch {}
-  }
-
-  // --- LAYER 5: DISSONANT CINEMATIC HORROR STRING SWELLS (LOUD) ---
-  private startStringSwells() {
-    const scheduleSwell = () => {
-      if (!this.isRunning) return;
-      this.synthesizeStringSwell();
-      const nextDelay = 10000 + Math.random() * 7000;
-      this.stringSwellTimer = setTimeout(scheduleSwell, nextDelay);
-    };
-
-    this.stringSwellTimer = setTimeout(scheduleSwell, 3000);
-  }
-
-  private synthesizeStringSwell() {
-    const ctx = this.getContext();
-    if (!ctx || !this.masterGain) return;
-
-    try {
-      const now = ctx.currentTime;
-      // Dissonant tension cluster: D3, Eb3, G#3
-      const freqs = [146.83, 155.56, 207.65];
-      const swellDuration = 5.2;
-
-      freqs.forEach((freq) => {
-        const osc = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const gain = ctx.createGain();
-
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, now);
-
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(350, now);
-        filter.frequency.linearRampToValueAtTime(750, now + 2.5);
-        filter.frequency.linearRampToValueAtTime(300, now + swellDuration);
-        filter.Q.setValueAtTime(3.0, now);
-
-        // Louder swell gain: 0.22 (was 0.045)
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.22, now + 2.2);
-        gain.gain.linearRampToValueAtTime(0.001, now + swellDuration);
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterGain!);
-
-        osc.start(now);
-        osc.stop(now + swellDuration + 0.1);
-      });
-    } catch {}
-  }
-
-  // --- LAYER 6: TENSION STINGERS ---
-  private startRandomStingers() {
-    const scheduleStinger = () => {
-      if (!this.isRunning) return;
-      if (this.currentMood === 'terror' || (this.currentMood === 'suspense' && Math.random() > 0.35)) {
-        this.synthesizeStinger();
-      }
-      const interval = 14000 + Math.random() * 12000;
-      this.stingerTimer = setTimeout(scheduleStinger, interval);
-    };
-
-    this.stingerTimer = setTimeout(scheduleStinger, 8000);
-  }
-
-  private synthesizeStinger() {
-    const ctx = this.getContext();
-    if (!ctx || !this.masterGain) return;
-
-    try {
-      const now = ctx.currentTime;
+      // High eerie sci-fi ping (1760 Hz or 2093 Hz)
+      const freq = Math.random() > 0.5 ? 1760 : 2093;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1244.5, now);
-      osc.frequency.exponentialRampToValueAtTime(830.6, now + 1.2);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.98, now + 1.2);
 
-      filter.type = 'highpass';
-      filter.frequency.setValueAtTime(650, now);
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(freq, now);
+      filter.Q.setValueAtTime(8.0, now);
 
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.26, now + 0.07);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.14, now + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
 
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(this.masterGain!);
+      gain.connect(this.masterGain);
+
+      if (this.delayNode) {
+        const sendGain = ctx.createGain();
+        sendGain.gain.setValueAtTime(0.4, now);
+        gain.connect(sendGain);
+        sendGain.connect(this.delayNode);
+      }
 
       osc.start(now);
-      osc.stop(now + 1.4);
+      osc.stop(now + 1.9);
     } catch {}
   }
 }
 
-export const horrorMusic = new HorrorMusicEngine();
+export const horrorMusic = new DarkSciFiAmbientEngine();
